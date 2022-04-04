@@ -34,6 +34,7 @@
                 document.head.appendChild(script);
                 script.addEventListener('load', function() {
                     console.log('script load OK(腳本加載完成)!');
+                    console.log(lastRegister);
                 })
             })
         }
@@ -50,6 +51,12 @@
                 console.log('id: ' + id);
                 return load(id);
             })
+        }
+
+        let lastRegister;
+        SystemJS.prototype.register = function(deps, declare) {
+            //將本次register的依賴及聲明expose到外部
+            lastRegister = [deps, declare]
         }
 
         let System = new SystemJS();
