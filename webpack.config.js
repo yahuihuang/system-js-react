@@ -7,7 +7,7 @@ module.exports = (env)=>{
         output: {
             filename: 'index.js',
             path: path.resolve(__dirname, 'dist'),
-            libraryTarget: env.production ? 'system' : ''
+            libraryTarget: env.production ? 'system' : ''   //打包的模式 system模塊(vue3目前不支持?)
         },
         module: {
             rules: [
@@ -22,7 +22,7 @@ module.exports = (env)=>{
             !env.production && new HtmlWebpackPlugin({
                 template: './public/index.html'
             })
-        ],
+        ].filter(Boolean),
         externals: env.production? ['react', 'react-dom'] : []
     }
 }
