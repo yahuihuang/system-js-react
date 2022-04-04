@@ -6,7 +6,8 @@
  * or disable the default devtool with "devtool: false".
  * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
  */
-System.register(["react","react-dom"], function(__WEBPACK_DYNAMIC_EXPORT__, __system_context__) {
+System.register(["https://cdn.bootcdn.net/ajax/libs/react/17.0.2/umd/react.production.min.js",
+	"https://cdn.bootcdn.net/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"], function(__WEBPACK_DYNAMIC_EXPORT__, __system_context__) {
 	var __WEBPACK_EXTERNAL_MODULE_react__ = {};
 	var __WEBPACK_EXTERNAL_MODULE_react_dom__ = {};
 	Object.defineProperty(__WEBPACK_EXTERNAL_MODULE_react__, "__esModule", { value: true });

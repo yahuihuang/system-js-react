@@ -6,18 +6,18 @@
     <meta http-equiv="X-UA-Compatible" content="IE-edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System JS in React</title>
+    
+    <script type="systemjs-importmap">
+        {
+            "imports": {
+                "react":"https://cdn.bootcdn.net/ajax/libs/react/17.0.2/umd/react.production.min.js",
+                "react-dom":"https://cdn.bootcdn.net/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"
+            }
+        }
+    </script>
 </head>
 
 <body>
-    <script type="systemjs-importmap">
-            {
-                "imports": {
-                    "react":"https://cdn.bootcdn.net/ajax/libs/react/17.0.2/umd/react.production.min.js",
-                    "react-dom":"https://cdn.bootcdn.net/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"
-                }
-            }
-        </script>
-
     <div id="root"></div>
     <script>
         // 可動態加載模塊，可加載遠程連結
@@ -26,15 +26,49 @@
 
         }
 
+        // 記住window的屬性
+        let propertySet = new Set();
+        const saveGlobalProperty = () => {
+            for (let property in window) {
+                propertySet.add(property);
+            }
+        }
+
+        const getGlobalLastProperty = () => {
+            let result;
+            for (let property in window) {
+                if (propertySet.has(property))
+                    continue;
+                result = window[property];
+                result.default = result;
+            }
+
+            return result;
+        }
+
+        // console.log(window)
+        saveGlobalProperty();
+
+        // 加載
         function load(id) {
             return new Promise((resolve, reject) => {
+                if (id == 'react' || id == 'react-dom') 
+                    return;
                 const script = document.createElement('script');
                 script.src = id;
                 script.async = true;
+                console.log(script);
                 document.head.appendChild(script);
                 script.addEventListener('load', function() {
                     console.log('script load OK(腳本加載完成)!');
                     console.log(lastRegister);
+                    let _lastRegister = lastRegister;
+                    lastRegister = undefined;
+                    if (!_lastRegister) {
+                        resolve([], function() {}); //表示無其它依賴
+                    }
+                    
+                    resolve(_lastRegister); //表示有其它依賴
                 })
             })
         }
@@ -49,7 +83,33 @@
                 }
             }).then(id => {
                 console.log('id: ' + id);
-                return load(id);
+                let execute;
+                return load(id).then(registertion=>{
+                    console.log(registertion);
+                    function _export() {}
+                    let declared = registertion[1](_export);
+                    // 加載react & react-dom，加載完畢後調用setters
+                    // 調用執行函數 executes
+                    console.log(declared, registertion[0]); //{setters: Array(2), execute: ƒ}
+                    execute = declared.execute;
+                    return [registertion[0], declared.setters]
+                }).then((info)=>{
+                    return Promise.all(info[0].map((dep, idx)=>{
+                        var setter = info[1][idx];
+                        // react & react-dom會給全局增加屬性window.React, window.ReactDOM
+                        console.log(dep);
+
+                        return load(dep).then(r_react => {
+                            console.log(r_react);
+                            let propertys = getGlobalLastProperty();
+                            console.log(propertys);
+                            setter(propertys);   //傳入加載文件
+                        });
+                    }));
+                }).then(()=> {
+                    console.log(execute);
+                    execute();
+                });
             })
         }
 
